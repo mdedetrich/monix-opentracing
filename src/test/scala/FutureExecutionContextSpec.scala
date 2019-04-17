@@ -57,8 +57,6 @@ class FutureExecutionContextSpec extends AsyncWordSpec with Matchers {
         tags shouldBe finishedTags
       }
 
-      true shouldBe true
-
     }
   }
 
@@ -105,8 +103,6 @@ class FutureExecutionContextSpec extends AsyncWordSpec with Matchers {
 
         tags shouldBe finishedTags
       }
-
-      true shouldBe true
 
     }
   }

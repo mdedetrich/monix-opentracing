@@ -58,6 +58,51 @@ class FutureExecutionContextSpec extends AsyncWordSpec with Matchers {
       }
 
     }
+
+    "Concurrently sets tags correctly with Task first" in {
+      val scopeManager = new TaskLocalScopeManager()
+      val tracer       = new MockTracer(scopeManager)
+
+      implicit val scheduler: Scheduler = AsyncScheduler(
+        Scheduler.DefaultScheduledExecutor,
+        new TracedExecutionContext(ExecutionContext.Implicits.global, tracer),
+        UncaughtExceptionReporter.default,
+        ExecutionModel.Default
+      )
+
+      val taskScope = Task {
+        tracer.buildSpan("foo").startActive(true)
+      }
+
+      val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
+
+      val futures = for {
+        scope <- taskScope.runToFutureOpt
+        tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
+          Future {
+            val activeSpan = tracer.activeSpan()
+            activeSpan.setTag(keyValue.key, keyValue.value)
+          }
+        }
+        _ <- Future { tracer.scopeManager().active().span().finish() }
+        _ <- Future.sequence(tags)
+        _ <- Future { scope.close() }
+      } yield ()
+
+      futures.map { _ =>
+        val finishedSpans = tracer.finishedSpans().asScala
+        val tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
+          (keyValue.key, keyValue.value)
+        }.toMap
+
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
+          case (k, v) => (k, v.asInstanceOf[String])
+        }
+
+        tags shouldBe finishedTags
+      }
+
+    }
   }
 
   "GlobalTracer with Future's and TracedAutoFinishExecutionContext" can {

@@ -9,7 +9,7 @@ import org.scalatest.{AsyncWordSpec, Matchers}
 import collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class FutureExecutionContextSpec extends AsyncWordSpec with Matchers {
+class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
   implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation
 
   "GlobalTracer with Future's and TracedExecutionContext" can {

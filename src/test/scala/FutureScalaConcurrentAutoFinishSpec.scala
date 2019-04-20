@@ -1,20 +1,22 @@
-import io.opentracing.contrib.concurrent.TracedExecutionContext
+import io.opentracing.contrib.concurrent.TracedAutoFinishExecutionContext
 import io.opentracing.mock.MockTracer
+import io.opentracing.util.AutoFinishScopeManager
 import org.scalatest.{AsyncWordSpec, Matchers}
 
-import scala.collection.JavaConverters._
+import collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
-  val tracer = new MockTracer()
+class FutureScalaConcurrentAutoFinishSpec extends AsyncWordSpec with Matchers {
+  val scopeManager = new AutoFinishScopeManager()
+  val tracer       = new MockTracer(scopeManager)
 
   override implicit val executionContext: ExecutionContext =
-    new TracedExecutionContext(ExecutionContext.global, tracer)
+    new TracedAutoFinishExecutionContext(ExecutionContext.global, tracer)
 
-  "GlobalTracer with Future's using TracedExecutionContext" can {
+  "GlobalTracer with Future's using TracedAutoFinishExecutionContext" can {
     "Concurrently sets tags correctly with Future" in {
 
-      val eventualScope = Future {
+      def eventualScope = Future {
         tracer.buildSpan("foo").startActive(true)
       }
 
@@ -28,7 +30,6 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
             activeSpan.setTag(keyValue.key, keyValue.value)
           }
         }
-        _ <- Future { tracer.scopeManager().active().span().finish() }
         _ <- Future.sequence(tags)
         _ <- Future { scope.close() }
       } yield ()
@@ -46,5 +47,7 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
         tags shouldBe finishedTags
       }
     }
+
   }
+
 }

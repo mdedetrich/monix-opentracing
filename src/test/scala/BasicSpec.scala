@@ -1,15 +1,18 @@
-import org.scalatest._
-import io.opentracing.util.GlobalTracer
-import org.mdedetrich.monix.opentracing.TaskLocalScopeManager
 import io.opentracing.mock.MockTracer
 import io.opentracing.noop.NoopTracer
+import io.opentracing.util.GlobalTracer
 import monix.eval._
-import collection.JavaConverters._
 import monix.execution.Scheduler
+import org.mdedetrich.monix.opentracing.TaskLocalScopeManager
+import org.scalatest._
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 
 class BasicSpec extends AsyncWordSpec with Matchers {
-  implicit val scheduler: Scheduler = Scheduler.global
-  implicit val opts: Task.Options   = Task.defaultOptions.enableLocalContextPropagation
+  implicit val scheduler: Scheduler                 = Scheduler.global
+  implicit val opts: Task.Options                   = Task.defaultOptions.enableLocalContextPropagation
+  override implicit val executionContext: ExecutionContext = scheduler
 
   "GlobalTracer with Tasks" can {
 

@@ -3,7 +3,7 @@ import io.opentracing.mock.MockTracer
 import monix.eval.Task
 import monix.execution.schedulers.AsyncScheduler
 import monix.execution.{ExecutionModel, Scheduler, UncaughtExceptionReporter}
-import org.mdedetrich.monix.opentracing.TaskLocalScopeManager
+import org.mdedetrich.monix.opentracing.LocalScopeManager
 import org.scalatest.{AsyncWordSpec, Matchers}
 
 import scala.collection.JavaConverters._
@@ -11,8 +11,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
   implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation
-  val scopeManager = new TaskLocalScopeManager()
-  val tracer       = new MockTracer(scopeManager)
+  val scopeManager                = new LocalScopeManager()
+  val tracer                      = new MockTracer(scopeManager)
 
   implicit val scheduler: Scheduler = AsyncScheduler(
     Scheduler.DefaultScheduledExecutor,

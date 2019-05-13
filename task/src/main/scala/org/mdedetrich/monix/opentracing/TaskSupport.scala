@@ -1,8 +1,8 @@
 package org.mdedetrich.monix.opentracing
 
+import io.opentracing.util.GlobalTracer
 import io.opentracing.{SpanContext, Tracer}
 import monix.eval.{Task, TaskLocal}
-import io.opentracing.util.GlobalTracer
 
 object TaskSupport {
   private[this] lazy val maybeGlobalTracer = util.Try(Option(GlobalTracer.get())).toOption.flatten

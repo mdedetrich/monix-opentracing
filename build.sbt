@@ -1,58 +1,69 @@
 val currentScalaVersion = "2.11.12"
 val openTracingVersion  = "0.31.0"
+val monixVersion        = "3.0.0-RC2-SNAPSHOT-9e79718-SNAPSHOT"
 
-name := "monix-opentracing"
+updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
 
-description := "Monix support for OpenTracing using TaskLocal"
-
-updateOptions := updateOptions.value.withLatestSnapshots(false)
-
-resolvers +=
+resolvers in ThisBuild +=
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
-scalaVersion := "2.11.12"
+scalaVersion in ThisBuild := "2.11.12"
 
-resolvers +=
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-
-scalaVersion := "2.11.12"
-
-crossScalaVersions := Seq(currentScalaVersion, "2.12.8")
+crossScalaVersions in ThisBuild := Seq(currentScalaVersion, "2.12.8")
 
 scalacOptions in Test in ThisBuild ++= Seq("-Yrangepos")
 
-organization := "org.mdedetrich"
+organization in ThisBuild := "org.mdedetrich"
 
-homepage := Some(url("https://github.com/mdedetrich/monix-opentracing"))
-scmInfo := Some(
+homepage in ThisBuild := Some(url("https://github.com/mdedetrich/monix-opentracing"))
+scmInfo in ThisBuild := Some(
   ScmInfo(url("https://github.com/mdedetrich/monix-opentracing"), "git@github.com:mdedetrich/monix-opentracing.git"))
 
-developers := List(
+developers in ThisBuild := List(
   Developer("mdedetrich", "Matthew de Detrich", "mdedetrich@gmail.com", url("https://github.com/mdedetrich"))
 )
 
-licenses += ("MIT", url("https://opensource.org/licenses/MIT"))
+licenses in ThisBuild += ("MIT", url("https://opensource.org/licenses/MIT"))
 
-publishMavenStyle := true
-publishTo := {
+publishMavenStyle in ThisBuild := true
+publishTo in ThisBuild := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
     Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
-publishArtifact in Test := false
-pomIncludeRepository := (_ => false)
+publishArtifact in Test in ThisBuild := false
+pomIncludeRepository in ThisBuild := (_ => false)
 
-libraryDependencies := Seq(
-  "io.monix"               %% "monix"                        % "3.0.0-RC2-SNAPSHOT-9e79718-SNAPSHOT",
-  "io.opentracing"         % "opentracing-api"               % openTracingVersion,
-  "io.opentracing"         % "opentracing-util"              % openTracingVersion,
-  "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
-  "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4" % Test,
-  "org.scalatest"          %% "scalatest"                    % "3.0.5" % Test,
-  "org.scalacheck"         %% "scalacheck"                   % "1.14.0" % Test
+lazy val core = (project in file("core")).settings(
+  libraryDependencies := Seq(
+    "io.monix"               %% "monix-execution"              % monixVersion,
+    "io.opentracing"         % "opentracing-api"               % openTracingVersion,
+    "io.opentracing"         % "opentracing-util"              % openTracingVersion,
+    "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
+    "io.monix"               %% "monix"                        % monixVersion % Test,
+    "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4" % Test,
+    "org.scalatest"          %% "scalatest"                    % "3.0.5" % Test,
+    "org.scalacheck"         %% "scalacheck"                   % "1.14.0" % Test
+  ),
+  name := "monix-opentracing",
+  description := "Monix support for OpenTracing using Local"
 )
+
+lazy val task = (project in file("task"))
+  .settings(
+    libraryDependencies := Seq(
+      "io.monix"               %% "monix"                        % monixVersion,
+      "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
+      "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4" % Test,
+      "org.scalatest"          %% "scalatest"                    % "3.0.5" % Test,
+      "org.scalacheck"         %% "scalacheck"                   % "1.14.0" % Test
+    ),
+    name := "monix-opentracing-task",
+    description := "Additional Monix Task interopt for OpenTracing"
+  )
+  .dependsOn(core)
 
 val flagsFor11 = Seq(
   "-Xlint:_",
@@ -69,7 +80,7 @@ val flagsFor12 = Seq(
   "-opt-inline-from:<sources>"
 )
 
-scalacOptions ++= {
+scalacOptions in ThisBuild ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, n)) if n >= 12 =>
       flagsFor12

@@ -4,13 +4,13 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import io.opentracing.{Scope, Span}
 
-class AutoFinishTaskLocalScope extends Scope {
-  private var manager: AutoFinishTaskLocalScopeManager = _
-  private var refCount: AtomicInteger                  = _
-  private var wrapped: Span                            = _
-  private var toRestore: AutoFinishTaskLocalScope      = _
+class AutoFinishLocalScope extends Scope {
+  private var manager: AutoFinishLocalScopeManager = _
+  private var refCount: AtomicInteger              = _
+  private var wrapped: Span                        = _
+  private var toRestore: AutoFinishLocalScope      = _
 
-  def this(scopeManager: AutoFinishTaskLocalScopeManager, refCount: AtomicInteger, wrapped: Span) {
+  def this(scopeManager: AutoFinishLocalScopeManager, refCount: AtomicInteger, wrapped: Span) {
     this()
     this.manager = manager
     this.refCount = refCount
@@ -22,7 +22,7 @@ class AutoFinishTaskLocalScope extends Scope {
   class Continuation() {
     refCount.incrementAndGet
 
-    def activate = new AutoFinishTaskLocalScope(manager, refCount, wrapped)
+    def activate = new AutoFinishLocalScope(manager, refCount, wrapped)
   }
 
   def capture: Continuation = new Continuation

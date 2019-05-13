@@ -1,7 +1,7 @@
 import io.opentracing.mock.MockTracer
 import monix.execution.Scheduler
 import monix.execution.schedulers.TracingScheduler
-import org.mdedetrich.monix.opentracing.TaskLocalScopeManager
+import org.mdedetrich.monix.opentracing.LocalScopeManager
 import org.scalatest.{AsyncWordSpec, Matchers}
 
 import scala.collection.JavaConverters._
@@ -13,7 +13,7 @@ class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
 
   "GlobalTracer with Future's using TracingScheduler" can {
     "Concurrently sets tags correctly with Future" ignore {
-      val scopeManager = new TaskLocalScopeManager()
+      val scopeManager = new LocalScopeManager()
       val tracer       = new MockTracer(scopeManager)
 
       def eventualScope = Future {

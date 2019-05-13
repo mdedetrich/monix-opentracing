@@ -2,13 +2,13 @@ package org.mdedetrich.monix.opentracing
 
 import io.opentracing.{Scope, Span}
 
-class TaskLocalScope extends Scope {
-  private final var scopeManager: TaskLocalScopeManager = _
-  private final var wrapped: Span                       = _
-  private final var finishOnClose                       = false
-  private final var toRestore: TaskLocalScope           = _
+class LocalScope extends Scope {
+  private final var scopeManager: LocalScopeManager = _
+  private final var wrapped: Span                   = _
+  private final var finishOnClose                   = false
+  private final var toRestore: LocalScope           = _
 
-  def this(scopeManager: TaskLocalScopeManager, wrapped: Span, finishOnClose: Boolean) {
+  def this(scopeManager: LocalScopeManager, wrapped: Span, finishOnClose: Boolean) {
     this()
     this.scopeManager = scopeManager
     this.wrapped = wrapped

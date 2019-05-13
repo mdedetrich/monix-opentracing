@@ -23,10 +23,15 @@ order to properly align your traces.
 This works fine if you have complete control over the ecosystem (i.e. the source of all of
 your dependencies) but fails otherwise.
 
-To avoid this problem, Monix Opentracing uses `Task` `Local` which is the
-equivalent of a Java  `ThreadLocal` (but for `Task`) meaning you don't have to
-explicitly pass your `SpanContext` everywhere.
+To avoid this problem, Monix Opentracing uses monix-execution `Local` which is the
+equivalent of a Java  `ThreadLocal` but has support for suspension on effectful operations
+along with greater scoping abilities. Essentially this means you don't have to explicitly
+pass your `SpanContext` everywhere.
 
+Note that the core of monix-opentracing only relies on `Local` from `monix-execution`
+which is separate from Monix's `Task`. Theoretically any lazy IO type can work with
+monix-opentracing as long as it has support for threading the monix-execution `Local`
+via async boundaries (currently only Monix Task has such support).
 
 ## Installation
 
@@ -38,12 +43,12 @@ libraryDependencies ++= List(
 )
 ```
 
-## Usage
+## Usage with Monix Task
 
 There are various ways to work with OpenTracing, depending on how "automatic" you want the
 integration to be.
 
-Firstly in order to use Monix Task you need to enable `TaskLocal` in your
+Firstly in order to use monix-opentracing with Monix `Task` you need to enable `TaskLocal` in your
 `Task`, there are multiple ways to do this
 
 * You can import the `Task.defaultOptions.enableLocalContextPropagation` implicit and use `runToFutureOpt`
@@ -61,8 +66,18 @@ which specifies how you can set up a custom scope manager.
 monix-opentracing provides two different `ScopeManager`s which are analogous to the ones
 provided by opentracing, these are
 
-* `TaskLocalScopeManager` (analogous to `ScopeManager`)
-* `AutoFinishTaskLocalScopeManager` (analogous to `AutoFinishScopeManager`)
+* `LocalScopeManager` (analogous to `ScopeManager`)
+* `AutoFinishLocalScopeManager` (analogous to `AutoFinishScopeManager`)
 
 All you need to do is to configure your `Tracer` to use one of the above `ScopeManager`'s rather then
 the default one.
+
+### Using Task directly
+
+In order to use Task support directly you need to add the following dependency
+
+```
+libraryDependencies ++= List(
+  "org.mdedetrich" %% "monix-opentracing-task" % "0.1.0-SNAPSHOT"
+)
+```

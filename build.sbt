@@ -1,11 +1,6 @@
 val currentScalaVersion = "2.11.12"
 val openTracingVersion  = "0.31.0"
-val monixVersion        = "3.0.0-RC2-SNAPSHOT-9e79718-SNAPSHOT"
-
-updateOptions in ThisBuild := updateOptions.value.withLatestSnapshots(false)
-
-resolvers in ThisBuild +=
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+val monixVersion        = "3.0.0-RC3"
 
 scalaVersion in ThisBuild := "2.11.12"
 

@@ -17,8 +17,8 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
   implicit val scheduler: Scheduler = AsyncScheduler(
     Scheduler.DefaultScheduledExecutor,
     new TracedExecutionContext(ExecutionContext.Implicits.global, tracer),
-    UncaughtExceptionReporter.default,
-    ExecutionModel.Default
+    ExecutionModel.Default,
+    UncaughtExceptionReporter.default
   )
   override implicit val executionContext: ExecutionContext = scheduler
 

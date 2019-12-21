@@ -1,10 +1,13 @@
-val currentScalaVersion = "2.11.12"
-val openTracingVersion  = "0.31.0"
-val monixVersion        = "3.0.0-RC3"
+val currentScalaVersion               = "2.12.10"
+val openTracingVersion                = "0.33.0"
+val monixVersion                      = "3.1.0"
+val scalaTestVersion                  = "3.1.0"
+val opentracingScalaConcurrentVersion = "0.0.6"
+val scalacheckVersion                 = "1.14.0"
 
-scalaVersion in ThisBuild := "2.11.12"
+scalaVersion in ThisBuild := currentScalaVersion
 
-crossScalaVersions in ThisBuild := Seq(currentScalaVersion, "2.12.8")
+crossScalaVersions in ThisBuild := Seq(currentScalaVersion, "2.13.1")
 
 scalacOptions in Test in ThisBuild ++= Seq("-Yrangepos")
 
@@ -38,9 +41,9 @@ lazy val core = (project in file("core")).settings(
     "io.opentracing"         % "opentracing-util"              % openTracingVersion,
     "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
     "io.monix"               %% "monix"                        % monixVersion % Test,
-    "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4" % Test,
-    "org.scalatest"          %% "scalatest"                    % "3.0.5" % Test,
-    "org.scalacheck"         %% "scalacheck"                   % "1.14.0" % Test
+    "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
+    "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,
+    "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion % Test
   ),
   name := "monix-opentracing",
   description := "Monix support for OpenTracing using Local"
@@ -51,9 +54,9 @@ lazy val task = (project in file("task"))
     libraryDependencies := Seq(
       "io.monix"               %% "monix"                        % monixVersion,
       "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
-      "io.opentracing.contrib" %% "opentracing-scala-concurrent" % "0.0.4" % Test,
-      "org.scalatest"          %% "scalatest"                    % "3.0.5" % Test,
-      "org.scalacheck"         %% "scalacheck"                   % "1.14.0" % Test
+      "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
+      "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,
+      "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion % Test
     ),
     name := "monix-opentracing-task",
     description := "Additional Monix Task interopt for OpenTracing"
@@ -75,9 +78,16 @@ val flagsFor12 = Seq(
   "-opt-inline-from:<sources>"
 )
 
+val flagsFor13 = Seq(
+  "-Xlint:_",
+  "-opt-inline-from:<sources>"
+)
+
 scalacOptions in ThisBuild ++= {
   CrossVersion.partialVersion(scalaVersion.value) match {
-    case Some((2, n)) if n >= 12 =>
+    case Some((2, n)) if n >= 13 =>
+      flagsFor13
+    case Some((2, n)) if n == 12 =>
       flagsFor12
     case Some((2, n)) if n == 11 =>
       flagsFor11

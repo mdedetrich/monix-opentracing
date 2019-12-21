@@ -1,29 +1,33 @@
 import io.opentracing.mock.MockTracer
+import monix.eval.Task
 import monix.execution.Scheduler
 import monix.execution.schedulers.TracingScheduler
 import org.mdedetrich.monix.opentracing.LocalScopeManager
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
+  implicit val opts: Task.Options          = Task.defaultOptions.enableLocalContextPropagation
   implicit val scheduler: Scheduler        = TracingScheduler(ExecutionContext.global)
   override val executionContext: Scheduler = scheduler
 
   "GlobalTracer with Future's using TracingScheduler" can {
-    "Concurrently sets tags correctly with Future" ignore {
+    "Concurrently sets tags correctly with Future" in {
       val scopeManager = new LocalScopeManager()
       val tracer       = new MockTracer(scopeManager)
 
-      def eventualScope = Future {
-        tracer.buildSpan("foo").startActive(true)
+      def eventualSpan = Future {
+        val span = tracer.buildSpan("foo").start()
+        tracer.activateSpan(span)
       }
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
 
       val futures = for {
-        scope <- eventualScope
+        scope <- eventualSpan
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
           Future {
             val activeSpan = tracer.activeSpan()
@@ -31,6 +35,9 @@ class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
           }
         }
         _ <- Future.sequence(tags)
+        _ <- Future {
+              tracer.activeSpan().finish()
+            }
         _ <- Future { scope.close() }
       } yield ()
 

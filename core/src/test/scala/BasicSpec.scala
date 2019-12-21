@@ -4,7 +4,8 @@ import io.opentracing.util.GlobalTracer
 import monix.eval._
 import monix.execution.Scheduler
 import org.mdedetrich.monix.opentracing.LocalScopeManager
-import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -19,7 +20,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
     "Register MonixTaskLocalScopeManager" in {
       val scopeManager = new LocalScopeManager()
       val mockTracer   = new MockTracer(scopeManager)
-      GlobalTracer.register(mockTracer)
+      GlobalTracer.registerIfAbsent(mockTracer)
       GlobalTracer.get() should not be an[NoopTracer]
     }
 
@@ -27,7 +28,9 @@ class BasicSpec extends AsyncWordSpec with Matchers {
       val scopeManager = new LocalScopeManager()
       val tracer       = new MockTracer(scopeManager)
 
-      val scope = tracer.buildSpan("foo").startActive(true)
+      val span = tracer.buildSpan("foo").start()
+
+      tracer.activateSpan(span)
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
 
@@ -40,7 +43,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
 
       val tasks = for {
         _ <- Task.gatherUnordered(tags)
-        _ <- Task { scope.close() }
+        _ <- Task { span.finish() }
       } yield ()
 
       tasks.runToFutureOpt.map { _ =>
@@ -61,22 +64,25 @@ class BasicSpec extends AsyncWordSpec with Matchers {
       val scopeManager = new LocalScopeManager()
       val tracer       = new MockTracer(scopeManager)
 
-      val scope = tracer.buildSpan("parent").startActive(true)
+      val span = tracer.buildSpan("parent").start()
+
+      tracer.activateSpan(span)
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
 
       val tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
         Task {
-          val activeSpan = tracer.activeSpan()
-          val closeSpan  = tracer.buildSpan(keyValue.key).asChildOf(activeSpan).startActive(true)
-          closeSpan.span().setTag(keyValue.key, keyValue.value)
-          closeSpan.close()
+          val activeSpan       = tracer.activeSpan()
+          val closeSpan        = tracer.buildSpan(keyValue.key).asChildOf(activeSpan)
+          val closeSpanStarted = closeSpan.start()
+          closeSpanStarted.setTag(keyValue.key, keyValue.value)
+          closeSpanStarted.finish()
         }.executeAsync
       }
 
       val tasks = for {
         _ <- Task.gatherUnordered(tags)
-        _ <- Task { scope.close() }
+        _ <- Task { span.finish() }
       } yield ()
 
       tasks.runToFutureOpt.map { _ =>

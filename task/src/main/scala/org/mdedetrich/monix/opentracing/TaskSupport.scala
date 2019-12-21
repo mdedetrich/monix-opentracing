@@ -4,8 +4,15 @@ import io.opentracing.util.GlobalTracer
 import io.opentracing.{SpanContext, Tracer}
 import monix.eval.{Task, TaskLocal}
 
+import scala.util.control.NonFatal
+
 object TaskSupport {
-  private[this] lazy val maybeGlobalTracer = util.Try(Option(GlobalTracer.get())).toOption.flatten
+  private[this] def maybeGlobalTracer: Option[Tracer] = try {
+    val globalTracer = GlobalTracer.get()
+    Option(globalTracer)
+  } catch {
+    case NonFatal(_) => None
+  }
 
   /**
     *
@@ -33,7 +40,6 @@ object TaskSupport {
 
     /**
       * If a [[SpanContext]] is currently available, injects it into the current Task computation.
-      * Will use [[GlobalTracer]]
       * @param tracer Which tracer to use
       * @return Task with the [[SpanContext]] injected as a TaskLocal
       */
@@ -41,6 +47,7 @@ object TaskSupport {
 
     /**
       * If a [[SpanContext]] is currently available, injects it into the current Task computation.
+      * Will use [[GlobalTracer]]
       * @return Task with the [[SpanContext]] injected as a TaskLocal
       */
     def injectCurrentSpan(): Task[T] =

@@ -4,37 +4,25 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import io.opentracing.{Scope, Span}
 
-class AutoFinishLocalScope extends Scope {
-  private var manager: AutoFinishLocalScopeManager = _
-  private var refCount: AtomicInteger              = _
-  private var wrapped: Span                        = _
-  private var toRestore: AutoFinishLocalScope      = _
+class AutoFinishLocalScope(manager: AutoFinishLocalScopeManager, refCount: AtomicInteger, wrapped: Span) extends Scope {
+  private val toRestore: AutoFinishLocalScope = manager.tlsScope.get
+  manager.tlsScope.update(this)
 
-  def this(scopeManager: AutoFinishLocalScopeManager, refCount: AtomicInteger, wrapped: Span) {
-    this()
-    this.manager = manager
-    this.refCount = refCount
-    this.wrapped = wrapped
-    this.toRestore = manager.tlsScope.get
-    manager.tlsScope.update(this)
-  }
+  private[opentracing] def capture: AutoFinishLocalScope#Continuation = new Continuation
 
-  class Continuation() {
+  override def close(): Unit =
+    if (this.manager.tlsScope.get eq this) {
+      if (this.refCount.decrementAndGet() == 0)
+        this.wrapped.finish()
+      this.manager.tlsScope.update(toRestore)
+    }
+
+  def span: Span = wrapped
+
+  private[opentracing] class Continuation() {
     refCount.incrementAndGet
 
     def activate = new AutoFinishLocalScope(manager, refCount, wrapped)
   }
 
-  def capture: Continuation = new Continuation
-
-  override def close(): Unit = {
-    if (manager.tlsScope.get != this) return
-
-    if (refCount.decrementAndGet == 0) wrapped.finish()
-
-    manager.tlsScope.update(toRestore)
-  }
-
-  override def span(): Span =
-    wrapped
 }

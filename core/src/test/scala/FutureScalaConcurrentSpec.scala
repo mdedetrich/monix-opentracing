@@ -1,12 +1,18 @@
 import io.opentracing.contrib.concurrent.TracedExecutionContext
 import io.opentracing.mock.MockTracer
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.BeforeAndAfter
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
+class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeAndAfter {
   val tracer = new MockTracer()
+
+  before {
+    tracer.reset()
+  }
 
   override implicit val executionContext: ExecutionContext =
     new TracedExecutionContext(ExecutionContext.global, tracer)
@@ -15,7 +21,8 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
     "Concurrently sets tags correctly with Future" in {
 
       val eventualScope = Future {
-        tracer.buildSpan("foo").startActive(true)
+        val span = tracer.buildSpan("foo").start()
+        tracer.activateSpan(span)
       }
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
@@ -28,8 +35,8 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers {
             activeSpan.setTag(keyValue.key, keyValue.value)
           }
         }
-        _ <- Future { tracer.scopeManager().active().span().finish() }
         _ <- Future.sequence(tags)
+        _ <- Future { tracer.activeSpan().finish() }
         _ <- Future { scope.close() }
       } yield ()
 

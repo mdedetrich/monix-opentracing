@@ -5,10 +5,16 @@ import monix.execution.misc.Local
 
 class LocalScopeManager extends ScopeManager {
 
-  final val tlScope = new Local[LocalScope](() => new LocalScope)
+  final val tlScope = new Local[LocalScope](() => null)
 
-  override def activate(span: Span, finishSpanOnClose: Boolean): Scope =
-    new LocalScope(this, span, finishSpanOnClose)
+  override def activate(span: Span): Scope =
+    new LocalScope(this, span)
 
-  override def active(): Scope = tlScope.get
+  override def activeSpan(): Span = {
+    val scope = tlScope.get
+    if (scope == null)
+      null
+    else
+      scope.span()
+  }
 }

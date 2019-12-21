@@ -4,15 +4,21 @@ import monix.eval.Task
 import monix.execution.schedulers.AsyncScheduler
 import monix.execution.{ExecutionModel, Scheduler, UncaughtExceptionReporter}
 import org.mdedetrich.monix.opentracing.LocalScopeManager
-import org.scalatest.{AsyncWordSpec, Matchers}
+import org.scalatest.BeforeAndAfter
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AsyncWordSpec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
-class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
+class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeAndAfter {
   implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation
   val scopeManager                = new LocalScopeManager()
   val tracer                      = new MockTracer(scopeManager)
+
+  before {
+    tracer.reset()
+  }
 
   implicit val scheduler: Scheduler = AsyncScheduler(
     Scheduler.DefaultScheduledExecutor,
@@ -23,10 +29,11 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
   override implicit val executionContext: ExecutionContext = scheduler
 
   "GlobalTracer with Future's and Task using TracedExecutionContext" can {
-    "Concurrently sets tags correctly with Future first" ignore {
+    "Concurrently sets tags correctly with Future first" in {
 
       val eventualScope = Future {
-        tracer.buildSpan("foo").startActive(true)
+        val span = tracer.buildSpan("foo").start()
+        tracer.activateSpan(span)
       }
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
@@ -40,8 +47,8 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
 
       val tasks = for {
         scope <- Task.fromFuture(eventualScope)
-        _     <- Task { tracer.scopeManager().active().span().finish() }
         _     <- Task.gatherUnordered(tags)
+        _     <- Task { tracer.activeSpan().finish() }
         _     <- Task { scope.close() }
       } yield ()
 
@@ -60,10 +67,11 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
 
     }
 
-    "Concurrently sets tags correctly with Task first" ignore {
+    "Concurrently sets tags correctly with Task first" in {
 
       val taskScope = Task {
-        tracer.buildSpan("foo").startActive(true)
+        val span = tracer.buildSpan("foo").start()
+        tracer.activateSpan(span)
       }
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
@@ -76,8 +84,8 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers {
             activeSpan.setTag(keyValue.key, keyValue.value)
           }
         }
-        _ <- Future { tracer.scopeManager().active().span().finish() }
         _ <- Future.sequence(tags)
+        _ <- Future { tracer.activeSpan().finish() }
         _ <- Future { scope.close() }
       } yield ()
 

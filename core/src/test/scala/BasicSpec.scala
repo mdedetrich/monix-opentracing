@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 
 class BasicSpec extends AsyncWordSpec with Matchers {
   implicit val scheduler: Scheduler                        = Scheduler.global
-  implicit val opts: Task.Options                          = Task.defaultOptions.enableLocalContextPropagation
+  implicit val opts: Task.Options                          = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
   override implicit val executionContext: ExecutionContext = scheduler
 
   "GlobalTracer with Tasks" can {
@@ -42,7 +42,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
       }
 
       val tasks = for {
-        _ <- Task.gatherUnordered(tags)
+        _ <- Task.parSequenceUnordered(tags)
         _ <- Task { span.finish() }
       } yield ()
 
@@ -81,7 +81,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
       }
 
       val tasks = for {
-        _ <- Task.gatherUnordered(tags)
+        _ <- Task.parSequenceUnordered(tags)
         _ <- Task { span.finish() }
       } yield ()
 

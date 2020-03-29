@@ -55,6 +55,14 @@ Firstly in order to use monix-opentracing with Monix `Task` you need to enable `
 * Applying a transformation `.executeWithOptions(_.enableLocalContextPropagation)` on each Task that uses a Local
 * Setting system property `monix.environment.localContextPropagation` to 1
 
+If you are mixing usage of `Future` with `Task` (i.e. setting and getting spans in both `Future` and `Task`)
+you also should disable local context isolation on run, here are the ways of doing his. Note that this requires
+at least Monix 3.2.0
+
+* You can import the `Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun` implicit and use `runToFutureOpt`
+* Applying a transformation `.executeWithOptions(_.enableLocalContextPropagation.disableLocalContextIsolateOnRun)` on each Task that uses a Local
+* Setting system property `monix.environment.disableLocalContextIsolateOnRun` to 1
+
 ### Using the Scope Manager
 
 OpenTracing provides an abstraction called the

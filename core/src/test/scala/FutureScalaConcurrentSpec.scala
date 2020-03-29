@@ -27,7 +27,7 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeA
 
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
 
-      val futures = for {
+      val future = for {
         scope <- eventualScope
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
           Future {
@@ -40,7 +40,7 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeA
         _ <- Future { scope.close() }
       } yield ()
 
-      futures.map { _ =>
+      future.map { _ =>
         val finishedSpans = tracer.finishedSpans().asScala
         val tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
           (keyValue.key, keyValue.value)

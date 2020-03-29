@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with BeforeAndAfter {
-  implicit val opts: Task.Options                 = Task.defaultOptions.enableLocalContextPropagation
+  implicit val opts: Task.Options                 = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
   implicit val scheduler: Scheduler               = TracingScheduler(ExecutionContext.global)
   override def executionContext: ExecutionContext = scheduler
 
@@ -41,7 +41,7 @@ class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with Be
 
       val tasks = for {
         scope <- Task.deferFuture(eventualScope)
-        _     <- Task.gatherUnordered(tags)
+        _     <- Task.parSequenceUnordered(tags)
         _     <- Task { tracer.activeSpan().finish() }
         _     <- Task { scope.close() }
       } yield ()

@@ -1,9 +1,12 @@
 val currentScalaVersion               = "2.12.10"
 val openTracingVersion                = "0.33.0"
 val monixVersion                      = "3.1.0"
+val monixTestVersion                  = "3.2.0-4524fe2-SNAPSHOT"
 val scalaTestVersion                  = "3.1.0"
 val opentracingScalaConcurrentVersion = "0.0.6"
 val scalacheckVersion                 = "1.14.0"
+
+resolvers in ThisBuild += Resolver.sonatypeRepo("snapshots")
 
 scalaVersion in ThisBuild := currentScalaVersion
 
@@ -40,7 +43,7 @@ lazy val core = (project in file("core")).settings(
     "io.opentracing"         % "opentracing-api"               % openTracingVersion,
     "io.opentracing"         % "opentracing-util"              % openTracingVersion,
     "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
-    "io.monix"               %% "monix"                        % monixVersion % Test,
+    "io.monix"               %% "monix"                        % monixTestVersion % Test,
     "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
     "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,
     "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion % Test
@@ -53,6 +56,7 @@ lazy val task = (project in file("task"))
   .settings(
     libraryDependencies := Seq(
       "io.monix"               %% "monix"                        % monixVersion,
+      "io.monix"               %% "monix"                        % monixTestVersion % Test,
       "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
       "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
       "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,

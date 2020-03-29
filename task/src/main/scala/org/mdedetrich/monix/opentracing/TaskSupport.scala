@@ -7,12 +7,13 @@ import monix.eval.{Task, TaskLocal}
 import scala.util.control.NonFatal
 
 object TaskSupport {
-  private[this] def maybeGlobalTracer: Option[Tracer] = try {
-    val globalTracer = GlobalTracer.get()
-    Option(globalTracer)
-  } catch {
-    case NonFatal(_) => None
-  }
+  private[this] def maybeGlobalTracer: Option[Tracer] =
+    try {
+      val globalTracer = GlobalTracer.get()
+      Option(globalTracer)
+    } catch {
+      case NonFatal(_) => None
+    }
 
   /**
     *

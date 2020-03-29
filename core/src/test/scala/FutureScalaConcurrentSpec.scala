@@ -29,14 +29,14 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeA
 
       val future = for {
         scope <- eventualScope
+        activeSpan = tracer.activeSpan()
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
           Future {
-            val activeSpan = tracer.activeSpan()
             activeSpan.setTag(keyValue.key, keyValue.value)
           }
         }
         _ <- Future.sequence(tags)
-        _ <- Future { tracer.activeSpan().finish() }
+        _ <- Future { activeSpan.finish() }
         _ <- Future { scope.close() }
       } yield ()
 

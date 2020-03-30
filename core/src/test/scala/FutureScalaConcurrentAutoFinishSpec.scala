@@ -19,6 +19,7 @@ class FutureScalaConcurrentAutoFinishSpec extends AsyncWordSpec with Matchers wi
     new TracedAutoFinishExecutionContext(ExecutionContext.global, tracer)
 
   "GlobalTracer with Future's using TracedAutoFinishExecutionContext" can {
+    // This test is disabled due to https://github.com/opentracing-contrib/scala-concurrent/issues/12
     "Concurrently sets tags correctly with Future" ignore {
 
       def eventualScope = Future {

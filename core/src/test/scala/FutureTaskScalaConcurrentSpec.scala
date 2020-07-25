@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeAndAfter {
-  implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
+  implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation
   val scopeManager                = new LocalScopeManager()
   val tracer                      = new MockTracer(scopeManager)
 

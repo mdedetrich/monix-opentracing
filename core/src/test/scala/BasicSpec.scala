@@ -11,8 +11,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 class BasicSpec extends AsyncWordSpec with Matchers {
-  implicit val scheduler: Scheduler                        = Scheduler.global
-  implicit val opts: Task.Options                          = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
+  implicit val scheduler: Scheduler                        = Scheduler.traced
+  implicit val opts: Task.Options                          = Task.defaultOptions.enableLocalContextPropagation
   override implicit val executionContext: ExecutionContext = scheduler
 
   "GlobalTracer with Tasks" can {

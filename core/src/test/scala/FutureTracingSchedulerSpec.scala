@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
-  implicit val opts: Task.Options          = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
+  implicit val opts: Task.Options          = Task.defaultOptions.enableLocalContextPropagation
   implicit val scheduler: Scheduler        = TracingScheduler(ExecutionContext.global)
   override val executionContext: Scheduler = scheduler
 

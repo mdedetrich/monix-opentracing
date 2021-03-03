@@ -1,8 +1,6 @@
-import io.opentracing.contrib.concurrent.TracedExecutionContext
 import io.opentracing.mock.MockTracer
 import monix.eval.Task
-import monix.execution.schedulers.AsyncScheduler
-import monix.execution.{ExecutionModel, Scheduler, UncaughtExceptionReporter}
+import monix.execution.Scheduler
 import org.mdedetrich.monix.opentracing.LocalScopeManager
 import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
@@ -12,7 +10,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeAndAfter {
-  implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation.disableLocalContextIsolateOnRun
+  implicit val opts: Task.Options = Task.defaultOptions.enableLocalContextPropagation
   val scopeManager                = new LocalScopeManager()
   val tracer                      = new MockTracer(scopeManager)
 
@@ -20,12 +18,7 @@ class FutureTaskScalaConcurrentSpec extends AsyncWordSpec with Matchers with Bef
     tracer.reset()
   }
 
-  implicit val scheduler: Scheduler = AsyncScheduler(
-    Scheduler.DefaultScheduledExecutor,
-    new TracedExecutionContext(ExecutionContext.Implicits.global, tracer),
-    ExecutionModel.Default,
-    UncaughtExceptionReporter.default
-  )
+  implicit val scheduler: Scheduler                        = Scheduler.traced
   override implicit val executionContext: ExecutionContext = scheduler
 
   "GlobalTracer with Future's and Task using TracedExecutionContext" can {

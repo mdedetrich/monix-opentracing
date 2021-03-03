@@ -1,16 +1,14 @@
-val currentScalaVersion               = "2.12.10"
+val currentScalaVersion               = "2.12.11"
 val openTracingVersion                = "0.33.0"
-val monixVersion                      = "3.1.0"
-val monixTestVersion                  = "3.2.0-4524fe2-SNAPSHOT"
+val monixVersion                      = "3.3.0"
+val monixTestVersion                  = "3.3.0"
 val scalaTestVersion                  = "3.1.0"
 val opentracingScalaConcurrentVersion = "0.0.6"
 val scalacheckVersion                 = "1.14.0"
 
-resolvers in ThisBuild += Resolver.sonatypeRepo("snapshots")
-
 scalaVersion in ThisBuild := currentScalaVersion
 
-crossScalaVersions in ThisBuild := Seq(currentScalaVersion, "2.13.1")
+crossScalaVersions in ThisBuild := Seq(currentScalaVersion, "2.13.5")
 
 scalacOptions in Test in ThisBuild ++= Seq("-Yrangepos")
 

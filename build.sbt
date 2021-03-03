@@ -65,15 +65,6 @@ lazy val task = (project in file("task"))
   )
   .dependsOn(core)
 
-val flagsFor11 = Seq(
-  "-Xlint:_",
-  "-Yconst-opt",
-  "-Ywarn-infer-any",
-  "-Yclosure-elim",
-  "-Ydead-code",
-  "-Xsource:2.12" // required to build case class construction
-)
-
 val flagsFor12 = Seq(
   "-Xlint:_",
   "-Ywarn-infer-any",
@@ -91,8 +82,6 @@ scalacOptions in ThisBuild ++= {
       flagsFor13
     case Some((2, n)) if n == 12 =>
       flagsFor12
-    case Some((2, n)) if n == 11 =>
-      flagsFor11
   }
 }
 

@@ -43,7 +43,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
 
       val tasks = for {
         _ <- Task.parSequenceUnordered(tags)
-        _ <- Task { span.finish() }
+        _ <- Task(span.finish())
       } yield ()
 
       tasks.runToFutureOpt.map { _ =>
@@ -52,8 +52,8 @@ class BasicSpec extends AsyncWordSpec with Matchers {
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags
@@ -82,7 +82,7 @@ class BasicSpec extends AsyncWordSpec with Matchers {
 
       val tasks = for {
         _ <- Task.parSequenceUnordered(tags)
-        _ <- Task { span.finish() }
+        _ <- Task(span.finish())
       } yield ()
 
       tasks.runToFutureOpt.map { _ =>

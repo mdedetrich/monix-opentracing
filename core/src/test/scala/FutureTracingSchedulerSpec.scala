@@ -29,16 +29,16 @@ class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
       val futures = for {
         scope <- eventualSpan
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
-          Future {
-            val activeSpan = tracer.activeSpan()
-            activeSpan.setTag(keyValue.key, keyValue.value)
-          }
-        }
+                 Future {
+                   val activeSpan = tracer.activeSpan()
+                   activeSpan.setTag(keyValue.key, keyValue.value)
+                 }
+               }
         _ <- Future.sequence(tags)
         _ <- Future {
-              tracer.activeSpan().finish()
-            }
-        _ <- Future { scope.close() }
+               tracer.activeSpan().finish()
+             }
+        _ <- Future(scope.close())
       } yield ()
 
       futures.map { _ =>
@@ -47,8 +47,8 @@ class FutureTracingSchedulerSpec extends AsyncWordSpec with Matchers {
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags

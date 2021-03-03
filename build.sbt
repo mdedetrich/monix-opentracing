@@ -16,7 +16,8 @@ organization in ThisBuild := "org.mdedetrich"
 
 homepage in ThisBuild := Some(url("https://github.com/mdedetrich/monix-opentracing"))
 scmInfo in ThisBuild := Some(
-  ScmInfo(url("https://github.com/mdedetrich/monix-opentracing"), "git@github.com:mdedetrich/monix-opentracing.git"))
+  ScmInfo(url("https://github.com/mdedetrich/monix-opentracing"), "git@github.com:mdedetrich/monix-opentracing.git")
+)
 
 developers in ThisBuild := List(
   Developer("mdedetrich", "Matthew de Detrich", "mdedetrich@gmail.com", url("https://github.com/mdedetrich"))
@@ -38,13 +39,13 @@ pomIncludeRepository in ThisBuild := (_ => false)
 lazy val core = (project in file("core")).settings(
   libraryDependencies := Seq(
     "io.monix"               %% "monix-execution"              % monixVersion,
-    "io.opentracing"         % "opentracing-api"               % openTracingVersion,
-    "io.opentracing"         % "opentracing-util"              % openTracingVersion,
-    "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
-    "io.monix"               %% "monix"                        % monixTestVersion % Test,
+    "io.opentracing"          % "opentracing-api"              % openTracingVersion,
+    "io.opentracing"          % "opentracing-util"             % openTracingVersion,
+    "io.opentracing"          % "opentracing-mock"             % openTracingVersion                % Test,
+    "io.monix"               %% "monix"                        % monixTestVersion                  % Test,
     "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
-    "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,
-    "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion % Test
+    "org.scalatest"          %% "scalatest"                    % scalaTestVersion                  % Test,
+    "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion                 % Test
   ),
   name := "monix-opentracing",
   description := "Monix support for OpenTracing using Local"
@@ -54,11 +55,11 @@ lazy val task = (project in file("task"))
   .settings(
     libraryDependencies := Seq(
       "io.monix"               %% "monix"                        % monixVersion,
-      "io.monix"               %% "monix"                        % monixTestVersion % Test,
-      "io.opentracing"         % "opentracing-mock"              % openTracingVersion % Test,
+      "io.monix"               %% "monix"                        % monixTestVersion                  % Test,
+      "io.opentracing"          % "opentracing-mock"             % openTracingVersion                % Test,
       "io.opentracing.contrib" %% "opentracing-scala-concurrent" % opentracingScalaConcurrentVersion % Test,
-      "org.scalatest"          %% "scalatest"                    % scalaTestVersion % Test,
-      "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion % Test
+      "org.scalatest"          %% "scalatest"                    % scalaTestVersion                  % Test,
+      "org.scalacheck"         %% "scalacheck"                   % scalacheckVersion                 % Test
     ),
     name := "monix-opentracing-task",
     description := "Additional Monix Task interopt for OpenTracing"

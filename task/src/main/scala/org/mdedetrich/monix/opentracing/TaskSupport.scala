@@ -15,9 +15,7 @@ object TaskSupport {
       case NonFatal(_) => None
     }
 
-  /**
-    *
-    * @param task
+  /** @param task
     * @param tracer
     * @tparam T
     * @return
@@ -39,15 +37,13 @@ object TaskSupport {
 
   implicit final class OpenTracingTaskSupport[T](task: Task[T]) {
 
-    /**
-      * If a [[SpanContext]] is currently available, injects it into the current Task computation.
+    /** If a [[SpanContext]] is currently available, injects it into the current Task computation.
       * @param tracer Which tracer to use
       * @return Task with the [[SpanContext]] injected as a TaskLocal
       */
     def injectCurrentSpan(tracer: Tracer): Task[T] = TaskSupport.injectCurrentSpan(task, tracer)
 
-    /**
-      * If a [[SpanContext]] is currently available, injects it into the current Task computation.
+    /** If a [[SpanContext]] is currently available, injects it into the current Task computation.
       * Will use [[GlobalTracer]]
       * @return Task with the [[SpanContext]] injected as a TaskLocal
       */

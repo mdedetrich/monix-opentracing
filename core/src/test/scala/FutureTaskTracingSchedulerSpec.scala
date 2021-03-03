@@ -42,8 +42,8 @@ class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with Be
       val tasks = for {
         scope <- Task.deferFuture(eventualScope)
         _     <- Task.parSequenceUnordered(tags)
-        _     <- Task { tracer.activeSpan().finish() }
-        _     <- Task { scope.close() }
+        _     <- Task(tracer.activeSpan().finish())
+        _     <- Task(scope.close())
       } yield ()
 
       tasks.runToFutureOpt.map { _ =>
@@ -52,8 +52,8 @@ class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with Be
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags
@@ -73,14 +73,14 @@ class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with Be
       val futures = for {
         scope <- taskScope.runToFutureOpt
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
-          Future {
-            val activeSpan = tracer.activeSpan()
-            activeSpan.setTag(keyValue.key, keyValue.value)
-          }
-        }
+                 Future {
+                   val activeSpan = tracer.activeSpan()
+                   activeSpan.setTag(keyValue.key, keyValue.value)
+                 }
+               }
         _ <- Future.sequence(tags)
-        _ <- Future { tracer.activeSpan().finish() }
-        _ <- Future { scope.close() }
+        _ <- Future(tracer.activeSpan().finish())
+        _ <- Future(scope.close())
       } yield ()
 
       futures.map { _ =>
@@ -89,8 +89,8 @@ class FutureTaskTracingSchedulerSpec extends AsyncWordSpec with Matchers with Be
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags

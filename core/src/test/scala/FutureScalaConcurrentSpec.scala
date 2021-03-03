@@ -28,16 +28,16 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeA
       val multipleKeyMultipleValues = MultipleKeysMultipleValues.multipleKeyValueGenerator.sample.get
 
       val future = for {
-        scope <- eventualScope
+        scope     <- eventualScope
         activeSpan = tracer.activeSpan()
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
-          Future {
-            activeSpan.setTag(keyValue.key, keyValue.value)
-          }
-        }
+                 Future {
+                   activeSpan.setTag(keyValue.key, keyValue.value)
+                 }
+               }
         _ <- Future.sequence(tags)
-        _ <- Future { activeSpan.finish() }
-        _ <- Future { scope.close() }
+        _ <- Future(activeSpan.finish())
+        _ <- Future(scope.close())
       } yield ()
 
       future.map { _ =>
@@ -46,8 +46,8 @@ class FutureScalaConcurrentSpec extends AsyncWordSpec with Matchers with BeforeA
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags

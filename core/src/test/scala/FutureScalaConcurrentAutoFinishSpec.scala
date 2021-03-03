@@ -32,13 +32,13 @@ class FutureScalaConcurrentAutoFinishSpec extends AsyncWordSpec with Matchers wi
       val futures = for {
         scope <- eventualScope
         tags = multipleKeyMultipleValues.keysAndValues.map { keyValue =>
-          Future {
-            val activeSpan = tracer.activeSpan()
-            activeSpan.setTag(keyValue.key, keyValue.value)
-          }
-        }
+                 Future {
+                   val activeSpan = tracer.activeSpan()
+                   activeSpan.setTag(keyValue.key, keyValue.value)
+                 }
+               }
         _ <- Future.sequence(tags)
-        _ <- Future { scope.close() }
+        _ <- Future(scope.close())
       } yield ()
 
       futures.map { _ =>
@@ -47,8 +47,8 @@ class FutureScalaConcurrentAutoFinishSpec extends AsyncWordSpec with Matchers wi
           (keyValue.key, keyValue.value)
         }.toMap
 
-        val finishedTags = finishedSpans.head.tags().asScala.toMap.map {
-          case (k, v) => (k, v.asInstanceOf[String])
+        val finishedTags = finishedSpans.head.tags().asScala.toMap.map { case (k, v) =>
+          (k, v.asInstanceOf[String])
         }
 
         tags shouldBe finishedTags

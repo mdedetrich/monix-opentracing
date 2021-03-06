@@ -1,7 +1,7 @@
 package org.mdedetrich.monix.opentracing
 
 import io.opentracing.util.GlobalTracer
-import io.opentracing.{SpanContext, Tracer}
+import io.opentracing.{Scope, Span, SpanContext, Tracer}
 import monix.eval.{Task, TaskLocal}
 
 import scala.util.control.NonFatal
@@ -55,4 +55,53 @@ object TaskSupport {
         }
       }
   }
+
+  implicit final class OpenTracingTaskObjectSupport(taskObject: Task.type) {
+    /**
+      * Allows you to execute a Task with a [[Span]]
+      * @param block The task to execute with the provided span which is either the current [[Span]] or [[acquireSpan]]
+      * @param acquireSpan How to create a [[Span]] if there isn't a [[Span]] on the current Task
+      * @return
+      */
+    def withSpan[A](block: Span => Task[A], acquireSpan: Task[Span])(implicit spanEnricher: SpanEnricher): Task[A] =
+      Task(Option(GlobalTracer.get().activeSpan()))
+        .flatMap {
+          case Some(span) => Task.pure(AcquireSpanContext.ExistingSpan(span))
+          case None =>
+            acquireSpan.map { span =>
+              val scope = GlobalTracer.get().activateSpan(span)
+              AcquireSpanContext.NewSpan(span, scope)
+            }
+        }
+        .bracketCase { spanContext =>
+          block(spanContext.span)
+        } { case (spanContext, exitCase) =>
+          Task {
+            spanEnricher.onTaskCompletion(spanContext.span, exitCase)
+            spanContext.span.finish()
+            spanContext match {
+              case context: AcquireSpanContext.NewSpan =>
+                context.scope.close()
+              case _ =>
+            }
+          }
+        }
+
+    //TODO
+    def withMaybeSpan[A](block: Option[Span] => Task[A])(implicit spanEnricher: SpanEnricher): Task[A] =
+      Task(Option(GlobalTracer.get().activeSpan())).bracketCase(block) { case (maybeSpan, exitCase) =>
+        Task {
+          maybeSpan.foreach { span =>
+            spanEnricher.onTaskCompletion(span, exitCase)
+            span.finish()
+          }
+        }
+      }
+  }
+}
+
+private[opentracing] sealed abstract class AcquireSpanContext(val span: Span) extends Serializable with Product
+private[opentracing] object AcquireSpanContext {
+  final case class ExistingSpan(override val span: Span)          extends AcquireSpanContext(span)
+  final case class NewSpan(override val span: Span, scope: Scope) extends AcquireSpanContext(span)
 }
